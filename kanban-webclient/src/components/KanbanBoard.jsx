@@ -27,7 +27,6 @@ export default function KanbanBoard() {
         const updatedColumns = { ...prevColumns };
   
         response.data.forEach((task) => {
-          // ✅ Check if task already exists before adding
           if (!updatedColumns[task.status].tasks.some((t) => t.id === task.id)) {
             updatedColumns[task.status].tasks.push(task);
           }
