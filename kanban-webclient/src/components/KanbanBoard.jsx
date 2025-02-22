@@ -6,7 +6,7 @@ import Column from "./Column";
 export default function KanbanBoard() {
   const initialColumns = {
     todo: { name: "To Do", tasks: [] },
-    inProgress: { name: "In Progress", tasks: [] },
+    in_progress: { name: "In Progress", tasks: [] },
     done: { name: "Done", tasks: [] },
   };
 
@@ -20,6 +20,7 @@ export default function KanbanBoard() {
   // ✅ Fetch tasks from FastAPI
   const fetchTasks = async () => {
     try {
+
       const response = await axios.get("http://127.0.0.1:8000/GetTasks", {
         withCredentials: true,
       });
@@ -50,71 +51,112 @@ export default function KanbanBoard() {
     }
   };
 
-  // ✅ Create a new task
   const createTask = async () => {
-    if (!newTask.title.trim() || !newTask.description.trim()) return;
-
+    if (!newTask.title.trim() || !newTask.description.trim()) {
+      console.warn("Title or description is missing");
+      return;
+    }
+  
+    console.log("🚀 Sending API request to create task:", newTask); // ✅ Debugging log
+  
     try {
-      const response = await axios.post("http://127.0.0.1:8000/CreateTask", newTask);
+      const response = await axios.post("http://127.0.0.1:8000/CreateTask", newTask, {
+        withCredentials: true,
+      });
+  
+      console.log("✅ Task created successfully:", response.data);
+  
       const createdTask = { id: response.data.id, ...newTask };
-
+  
       setColumns((prevColumns) => {
         const updatedColumns = { ...prevColumns };
+  
+        if (!updatedColumns[newTask.status]) {
+          console.warn(`Unknown status: ${newTask.status}, skipping task`, newTask);
+          return prevColumns;
+        }
+  
         updatedColumns[newTask.status].tasks.push(createdTask);
         return updatedColumns;
       });
-
+  
       setNewTask({ title: "", description: "", status: "todo" });
-
+  
     } catch (error) {
-      console.error("Error creating task:", error);
+      console.error("❌ Error creating task:", error.response ? error.response.data : error.message);
     }
   };
-
-  // ✅ Handle drag-and-drop logic
+  
   const handleDragEnd = async (event) => {
     const { active, over } = event;
-
-    if (!over) return;
-
+  
+    if (!over) {
+      console.warn("🚨 Drag Ended Outside Any Column");
+      return;
+    }
+  
     const sourceColumnId = active.data.current?.columnId;
     const targetColumnId = over.id;
-
-    if (sourceColumnId === targetColumnId) return;
-
-    const taskId = active.id;
-
+    const taskId = String(active.id);
+  
+    console.log("🎯 Drag Event:");
+    console.log("Task ID:", taskId);
+    console.log("Source Column:", sourceColumnId);
+    console.log("Target Column:", targetColumnId);
+  
+    if (!sourceColumnId || !targetColumnId) {
+      console.error("❌ Drag Error: Missing source or target column!");
+      return;
+    }
+  
     setColumns((prevColumns) => {
       const updatedColumns = { ...prevColumns };
-
-      // Remove task from source column
-      updatedColumns[sourceColumnId].tasks = updatedColumns[sourceColumnId].tasks.filter(
-        (task) => task.id !== taskId
-      );
-
-      // Find the dragged task
-      const movedTask = columns[sourceColumnId].tasks.find((task) => task.id === taskId);
-      if (movedTask) {
-        movedTask.status = targetColumnId; // Update status
-        updatedColumns[targetColumnId].tasks.push(movedTask);
+  
+      if (!updatedColumns[sourceColumnId]) {
+        console.error(`❌ Source column '${sourceColumnId}' not found!`);
+        return prevColumns;
       }
-
+  
+      if (!updatedColumns[targetColumnId]) {
+        console.error(`❌ Target column '${targetColumnId}' not found!`);
+        return prevColumns;
+      }
+  
+      console.log("🔍 Checking source column for task:", updatedColumns[sourceColumnId].tasks);
+      const movedTask = updatedColumns[sourceColumnId].tasks.find(
+        (task) => String(task.id) === taskId // ✅ Convert both to strings for comparison
+      );
+  
+      if (!movedTask) {
+        console.error("❌ Moved task not found in source column!", taskId);
+        console.log("🔍 Source column tasks:", updatedColumns[sourceColumnId].tasks);
+        return prevColumns;
+      }
+  
+      updatedColumns[sourceColumnId].tasks = updatedColumns[sourceColumnId].tasks.filter(
+        (task) => String(task.id) !== taskId
+      );
+  
+      movedTask.status = targetColumnId;
+      updatedColumns[targetColumnId].tasks.push(movedTask);
+  
+      console.log("✅ Task moved successfully!", movedTask);
       return updatedColumns;
     });
-
-    // ✅ Update task status in FastAPI database
+  
     try {
       await axios.put(`http://127.0.0.1:8000/UpdateTask/${taskId}`, {
         status: targetColumnId,
       });
+      console.log("✅ Task updated successfully in database!");
     } catch (error) {
-      console.error("Error updating task:", error);
+      console.error("❌ Error updating task:", error);
     }
   };
+  
 
   return (
     <div>
-      {/* ✅ Task Creation Form */}
       <div className="p-4">
         <input 
           type="text" 
@@ -136,7 +178,7 @@ export default function KanbanBoard() {
           className="border p-2 rounded mr-2"
         >
           <option value="todo">To Do</option>
-          <option value="inProgress">In Progress</option>
+          <option value="in_progress">In Progress</option>
           <option value="done">Done</option>
         </select>
         <button onClick={createTask} className="bg-blue-500 text-white p-2 rounded">
@@ -144,7 +186,6 @@ export default function KanbanBoard() {
         </button>
       </div>
 
-      {/* ✅ Drag-and-Drop Context */}
       <DndContext collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
         <div className="grid grid-cols-3 gap-4 p-4">
           {Object.entries(columns).map(([columnId, column]) => (

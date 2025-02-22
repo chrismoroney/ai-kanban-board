@@ -16,11 +16,11 @@ async def get_tasks():
         cur.execute("SELECT id, title, description, status FROM tasks;")
         tasks = [
             {
-                "id": str(row[0]),
+                "id": str(row[0]),  # ✅ Convert ID to string
                 "title": row[1],
                 "description": row[2],
-                "status": "todo" if row[3] == "pending" else 
-                          "inProgress" if row[3] == "in_progress" else 
+                "status": "in_progress" if row[3] == "in_progress" else 
+                          "todo" if row[3] == "pending" else 
                           "done" if row[3] == "completed" else row[3]
             }
             for row in cur.fetchall()
@@ -35,10 +35,13 @@ async def get_tasks():
         logging.error(f"Database error: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
+
+
 @router.post("/CreateTask")
 async def create_task(task: TaskCreate):
     """Insert a new task into the database."""
     try:
+
         conn = get_db_connection()
         cur = conn.cursor()
         cur.execute(
@@ -51,11 +54,14 @@ async def create_task(task: TaskCreate):
         cur.close()
         conn.close()
 
+        print(f"✅ Task inserted successfully with ID: {task_id}")
         return {"id": task_id, "message": "Task created successfully"}
 
     except Exception as e:
-        logging.error(f"Database error: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to create task")
+        import traceback
+        error_message = traceback.format_exc()
+        logging.error(f"❌ Database error: {error_message}")
+        raise HTTPException(status_code=500, detail=f"Database Error: {str(e)}")
 
 
 @router.put("/UpdateTask/{task_id}")

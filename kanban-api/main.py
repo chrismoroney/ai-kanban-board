@@ -4,18 +4,17 @@ from routes.tasks import router as task_router
 
 app = FastAPI()
 
-# ✅ Allow only your frontend (replace with your actual frontend URL)
 origins = [
-    "http://localhost:5173",  # Vite Dev Server
-    "http://127.0.0.1:5173"   # Alternative if localhost doesn't work
+    "http://localhost:5173", 
+    "http://127.0.0.1:5173"
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,  # ✅ Replace "*" with allowed frontend URLs
-    allow_credentials=True,  # ✅ Required for `withCredentials: true`
-    allow_methods=["*"],  # ✅ Allow all HTTP methods
-    allow_headers=["*"],  # ✅ Allow all headers
+    allow_origins=origins,  
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"], 
 )
 
 app.include_router(task_router)
