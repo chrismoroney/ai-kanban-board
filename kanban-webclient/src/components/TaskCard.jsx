@@ -15,9 +15,11 @@ export default function TaskCard({ task, columnId }) {
   } : undefined;
 
   return (
-    <div ref={setNodeRef} {...attributes} {...listeners} style={style} className="task-card">
-      <h4>{task.title}</h4>
-      <p>{task.description}</p>
+    <div ref={setNodeRef} {...attributes} {...listeners} style={style} className="card mb-2">
+      <div className="card-body">
+        <h5 className="card-title">{task.title}</h5>
+        <p className="card-text">{task.description}</p>
+      </div>
     </div>
   );
 }
