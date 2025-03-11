@@ -1,0 +1,23 @@
+version: "3.8"
+
+services:
+  backend:
+    build: ./kanban-api
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./kanban-api/.env
+    restart: always
+    depends_on:
+      - frontend
+
+  frontend:
+    build: ./kanban-webclient
+    ports:
+      - "5173:5173"
+    restart: always
+    volumes:
+      - ./kanban-webclient:/app
+      - /app/node_modules
+    working_dir: /app
+    command: ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
