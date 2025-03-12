@@ -1,0 +1,26 @@
+name: Run Backend Tests
+
+on: [push, pull_request] 
+
+jobs:
+  test:
+    runs-on: ubuntu-latest 
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set Up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10" 
+
+      - name: Install Dependencies
+        run: |
+          cd kanban-api
+          pip install -r requirements.txt
+
+      - name: Run Tests
+        run: |
+          cd kanban-api
+          pytest tests --disable-warnings 
