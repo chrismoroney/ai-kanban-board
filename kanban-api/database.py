@@ -1,13 +1,10 @@
-import psycopg2
 import os
-from dotenv import load_dotenv
+import psycopg2
 
-# Load environment variables from .env
-load_dotenv()
-
-# Get database URL from environment
 DB_URL = os.getenv("DATABASE_URL")
 
+if not DB_URL:
+    raise ValueError("❌ DATABASE_URL is not set! Make sure it's configured properly.")
+
 def get_db_connection():
-    """Returns a new PostgreSQL connection."""
     return psycopg2.connect(DB_URL)
