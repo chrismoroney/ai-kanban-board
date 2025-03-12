@@ -1,0 +1,18 @@
+.task-card {
+    position: relative;
+    background: white;
+    border-radius: 5px;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+    transition: box-shadow 0.2s ease-in-out, transform 0.2s ease-in-out;
+    user-select: none; /* ✅ Prevents selection issues */
+    width: 100%; /* ✅ Ensures size remains fixed */
+    height: auto;
+  }
+  
+  .task-card.dragging {
+    z-index: 9999 !important;
+    position: fixed !important; /* ✅ Ensures it moves freely above everything */
+    transform: none !important; /* ✅ Prevent unintended resizing */
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3) !important; /* ✅ Add shadow for better visibility */
+  }
+  

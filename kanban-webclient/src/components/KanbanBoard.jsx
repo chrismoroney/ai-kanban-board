@@ -6,7 +6,7 @@ import Column from "./Column";
 export default function KanbanBoard() {
   const initialColumns = {
     todo: { name: "To Do", tasks: [] },
-    inProgress: { name: "In Progress", tasks: [] },
+    in_progress: { name: "In Progress", tasks: [] },
     done: { name: "Done", tasks: [] },
   };
 
@@ -78,6 +78,15 @@ export default function KanbanBoard() {
     }
   };
   
+  const handleDeleteTask = (taskId) => {
+    setColumns((prevColumns) => {
+      const newColumns = { ...prevColumns };
+      Object.keys(newColumns).forEach((column) => {
+        newColumns[column].tasks = newColumns[column].tasks.filter(task => task.id !== taskId);
+      });
+      return newColumns;
+    });
+  };
 
   // ✅ Handle Drag and Drop Logic
   const handleDragEnd = async (event) => {
@@ -177,7 +186,7 @@ export default function KanbanBoard() {
             className="form-select"
           >
             <option value="todo">To Do</option>
-            <option value="inProgress">In Progress</option>
+            <option value="in_progress">In Progress</option>
             <option value="done">Done</option>
           </select>
         </div>
@@ -193,7 +202,7 @@ export default function KanbanBoard() {
         <div className="row">
           {Object.entries(columns).map(([columnId, column]) => (
             <div key={columnId} className="col-md-4">
-              <Column columnId={columnId} column={column} />
+              <Column columnId={columnId} column={column} onDelete={handleDeleteTask} />
             </div>
           ))}
         </div>

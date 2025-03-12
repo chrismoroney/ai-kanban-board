@@ -86,3 +86,25 @@ async def update_task(task_id: int, task_data: dict):
     except Exception as e:
         logging.error(f"Database error: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to update task")
+    
+
+@router.delete("/DeleteTask/{task_id}")
+async def delete_task(task_id: int):
+    """Delete a task from the database by ID."""
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("DELETE FROM tasks WHERE id = %s RETURNING id", (task_id,))
+        deleted_id = cur.fetchone()
+        conn.commit()
+        cur.close()
+        conn.close()
+
+        if deleted_id:
+            return {"message": "Task deleted successfully"}
+        else:
+            raise HTTPException(status_code=404, detail="Task not found")
+
+    except Exception as e:
+        logging.error(f"Database error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to delete task")
